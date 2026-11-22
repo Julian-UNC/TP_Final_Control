@@ -41,7 +41,7 @@
    F2 = F1*n/s; %Lazo abierto
    FdT = minreal(feedback(F2,Kpot))
 
-   t = 0:1:150;
+   t = 0:0.1:20;
 
    u_step = 12*ones(size(t));
 
@@ -96,8 +96,8 @@
 
    u_ramp = 12*t;
 
-   figure;lsim(FdTC,u_step,t)
-   figure;lsim(FdTC,u_ramp,t)
+   figure;lsim(FdTC*Kpot,u_step,t)
+   figure;lsim(FdTC*Kpot,u_ramp,t)
 
    L = minreal(PI * F2 * Kpot);
 
