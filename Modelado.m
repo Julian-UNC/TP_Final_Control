@@ -198,9 +198,21 @@
 
 
 
-   %stepinfo(FdT)
 
-   % DISEÑO DEL COMPENSADOR
+   % DISEÑO DEL COMPENSADOR PID
+   polos_LA=pole(L);    %Polos De Lazo Abierto
+   z1=abs(polos_LA(2)); %Ponemos el Cero del Compensador en el Polo dominante de Lazo Abierto para Cancelarlo
+   z2=15;
+   Kc=1;
+
+   Kp=Kc*(z1+z2);
+   Ki=Kc*z1*z2;
+   Kd=Kc;
+   %FUNCION DE TRANFERENCIA DEL COMPENSADOR
+   C=Kp+Ki/s+Kd*s
+
+   figure(5)
+   rlocusx(L*C/Kd)
 
    %Ki = -1/p(3)
 
