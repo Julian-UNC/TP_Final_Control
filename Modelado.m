@@ -49,8 +49,8 @@
 
 
    %SETs POINTs
-   V_step=12; %V
-   V_ramp=12; %V
+   V_step=2.4; %V
+   V_ramp=2.4; %V
 
    %Torque de Perturbacion Externa
    TL_per=TL;
@@ -102,7 +102,7 @@
 
 
    %Simulaciones de Respuestas Temporales
-   t = 0:0.01:20;
+   t = 0:0.01:10;
    %Entradas de Tension
    u_step = V_step*ones(size(t));
    u_ramp = V_ramp*t;
@@ -196,57 +196,117 @@
  endif
 
 
-
-
-
    % DISEÑO DEL COMPENSADOR PID
+   close all;clc
+   disp('');
+   disp('DISEÑO DEL PID');
+   disp('');
+
    polos_LA=pole(L);    %Polos De Lazo Abierto
-   z1=abs(polos_LA(2)); %Ponemos el Cero del Compensador en el Polo dominante de Lazo Abierto para Cancelarlo
-   z2=15;
+   z1=abs(polos_LA(2)) %Ponemos el Cero del Compensador en el Polo dominante de Lazo Abierto para Cancelarlo
+   z2=0.1;
    Kc=1;
 
-   Kp=Kc*(z1+z2);
-   Ki=Kc*z1*z2;
-   Kd=Kc;
+   Kp=Kc*(z1+z2)
+   Ki=Kc*z1*z2
+   Kd=Kc
    %FUNCION DE TRANFERENCIA DEL COMPENSADOR
    C=Kp+Ki/s+Kd*s
 
-   figure(5)
-   rlocusx(L*C/Kd)
+   % rlocusx(L*C/Kd)
 
-   %Ki = -1/p(3)
+   a = feedback(C*F2,Kpot)
 
-   %1/Ki
+   stepinfo(a)
 
-   %PI = (s + 1/Ki)/s
+   pole(a)
 
-   %p = pole(minreal(FdT*PI))
-  % z = zero(minreal(FdT*PI))
+   Comp_s = lsim(a,u_step,t);
+   Comp_r = lsim(a,u_ramp,t);
 
-   %rlocusx(minreal(FdT*PI))
+   figure(5);
+   subplot(2,1,1);
+   plot(t,Comp_s,'r','LineWidth', 1.5); hold on;
+   plot(t, ref_step, '--k', 'LineWidth', 1.2); hold off;
+   grid on; title("Respuesta al Escalon compensada con Perturbacion Constante")
+   xlabel('Tiempo[s]'); ylabel('Angulo[rad]');
+   legend('Respuesta y(t)', 'Referencia r(t)', 'Location', 'southeast');
 
-   %K = 22.62; % n = 1/100
-  % K = 9.38; % n = 1/71
+   subplot(2,1,2);
+   plot(t,Comp_r,'r', 'LineWidth', 1.5); hold on;
+   plot(t, ref_ramp, '--k', 'LineWidth', 1.2); hold off;
+   grid on; title("Respuesta a la Rampa compensada con Perturbacion Constante")
+   xlabel('Tiempo[s]'); ylabel('Angulo[rad]');
+   legend('Respuesta y(t)', 'Referencia r(t)', 'Location', 'southeast');
 
-  % FdTC = minreal(feedback(minreal(F2*PI*K),Kpot))
+   % CÁLCULO DEL PID
 
-   %t = 0:0.1:20;
+   clc
+
+   Kp % = Rf/R
+
+   disp('');
+   disp('Kp');
+   disp('');
+
+   R  = 10e3;
+   Rf = Kp * R
+   Rf = 270e3;
+
+   Kp_real = Rf/R
 
 
-  % figure;lsim(FdTC*Kpot,u_step,t)
-  % figure;lsim(FdTC*Kpot,u_ramp,t)
+   disp('');
+   Ki % = 1/RC
 
-  % L = minreal(PI * F2 * Kpot);
+   disp('');
+   disp('Ki');
+   disp('');
 
-   %Kp = dcgain(L);
+   C  = 680e-9
+   R  = 1/(Ki*C)
+   R  = 560e3
 
-   %ess_step = 1/(1+Kp)
+   Ki_real = 1/(R*C)
 
-  % Kv = dcgain(minreal(s*L));
+   disp('');
+   Kd % = RC
 
-   %fprintf('Kv = %f\n',Kv);
+   disp('');
+   disp('Kd');
+   disp('');
 
-  % ess_ramp = 1/Kv;
+   C  = 1e-6
+   R  = 1e6
 
-  % fprintf('Error estacionario ante rampa = %f\n',ess_ramp);
+   Kd_real = R*C
+
+   %FUNCION DE TRANFERENCIA DEL COMPENSADOR REAL
+   C=Kp_real+Ki_real/s+Kd_real*s
+
+   % rlocusx(L*C/Kd)
+
+   a = feedback(C*F2,Kpot)
+
+   stepinfo(a)
+
+   pole(a)
+
+   Comp_s = lsim(a,u_step,t);
+   Comp_r = lsim(a,u_ramp,t);
+
+   figure(5);
+   subplot(2,1,1);
+   plot(t,Comp_s,'r','LineWidth', 1.5); hold on;
+   plot(t, ref_step, '--k', 'LineWidth', 1.2); hold off;
+   grid on; title("Respuesta al Escalon compensada con Perturbacion Constante")
+   xlabel('Tiempo[s]'); ylabel('Angulo[rad]');
+   legend('Respuesta y(t)', 'Referencia r(t)', 'Location', 'southeast');
+
+   subplot(2,1,2);
+   plot(t,Comp_r,'r', 'LineWidth', 1.5); hold on;
+   plot(t, ref_ramp, '--k', 'LineWidth', 1.2); hold off;
+   grid on; title("Respuesta a la Rampa compensada con Perturbacion Constante")
+   xlabel('Tiempo[s]'); ylabel('Angulo[rad]');
+   legend('Respuesta y(t)', 'Referencia r(t)', 'Location', 'southeast');
 
